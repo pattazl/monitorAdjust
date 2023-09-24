@@ -7,7 +7,7 @@ global APPName:="monitorAdjust", ver:="1.0"
      , IniFile := "monitorAdjust.ini"
 step := 5
 mon := Monitor() ; Create new class instance
-MonitorIndex := 1 ; 默认选中的显示器     
+MonitorIndex := 0 ; 默认选中的显示器,从配置文件中读取
 ;气泡提示框
 ; 参考：ToolTip - AutoHotkey 中文手册
 ; ToolTip - Syntax & Usage
@@ -58,12 +58,12 @@ AddContrast2(ThisHotkey)
 {
     AddContrast(step)
 }
-MCount := MonitorGetCount()
+MCount := 0
 MonitorInfo := Array()
 ;用于获取多个显示器的亮度和对比度
 GetMonitorInfo(){
     MInfo := []
-    global MCount
+    global MCount := MonitorGetCount()
     loopNum := MCount
     loop loopNum {
         try{
@@ -169,10 +169,26 @@ MenuHandler(ItemName , ItemPos, MyMenu){
 
 CreateMenu()
 {
-  ; 获取显示器信息
-  global MonitorInfo := GetMonitorInfo()
+  ; 获取显示器信息,可能会有一些延时，尝试10次
+  loop 10 {
+    global MonitorInfo := GetMonitorInfo()
+    if MonitorInfo.Length = 0{
+        sleep(1000)
+    }else{
+        break
+    }
+  }
+  if MonitorInfo.Length = 0 {
+    MsgBox("未获取到任何显示器信息，请重启程序")
+    ExitApp
+    return
+  }
   ; 获取初始化信息并赋值
   global step := Integer(IniRead(IniFile,"setting","step","10"))
+  global MonitorIndex := Integer(IniRead(IniFile,"setting","MonitorIndex","1"))
+  if (MonitorIndex > MonitorInfo.Length){
+    MonitorIndex := MonitorInfo.Length  ; 找一个最近的作为默认值
+  }
   key1 := IniRead(IniFile,"setting","BrightnessDecrease","#F5")
   key2 := IniRead(IniFile,"setting","BrightnessIncrease","#F6")
   key3 := IniRead(IniFile,"setting","ContrastDecrease","#F7")
@@ -212,3 +228,10 @@ CreateMenu()
   }
 }
 CreateMenu()
+; 退出时候保存选择的显示器序号
+OnExit ExitFunc
+ExitFunc(ExitReason, ExitCode)
+{
+    IniWrite MonitorIndex , IniFile, "setting", "MonitorIndex"
+}
+
