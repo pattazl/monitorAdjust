@@ -26,7 +26,7 @@
 
 以上可在 monitorAdjust.ini 文件(如不存在，设置时会自动创建) 中修改
 
-; 定义快捷键, !表示Alt , #表示windows, !表示shift, ^ 表示Ctrl, 比如 ^#F5 表示同时按下 ctrl+win+F5键，可以用按键名或 VKnn(其中为键位数) 定义按键，修改后重启程序生效
+; 定义快捷键, !表示Alt , #表示windows, +表示shift, ^ 表示Ctrl, 比如 ^#F5 表示同时按下 ctrl+win+F5键，可以用按键名或 VKnn(其中为键位数) 定义按键，修改后重启程序生效
 
 
 

@@ -128,7 +128,7 @@ MenuHandler(ItemName , ItemPos, MyMenu){
         FileObj.write("[setting]`n" .
         "; 每次按键调节的步长`n" . 
         "step = 10`n" . 
-        "; 定义快捷键, !表示Alt , #表示windows, !表示shift, ^ 表示Ctrl, 比如 ^#F5 表示同时按下 ctrl+win+F5键，修改后重启程序生效`n" .
+        "; 定义快捷键, !表示Alt , #表示windows, +表示shift, ^ 表示Ctrl, 比如 ^#F5 表示同时按下 ctrl+win+F5键，修改后重启程序生效`n" .
         "BrightnessDecrease = #F5`n" .
         "BrightnessIncrease = #F6`n" .
         "ContrastDecrease = #F7`n" .
