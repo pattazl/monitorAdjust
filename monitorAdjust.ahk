@@ -3,7 +3,7 @@
 ;================ 改变显示器亮度 ， ahk下载地址和思路：https://github.com/tigerlily-dev/Monitor-Configuration-Class
 #Include  ".\lib\Monitor Class.ahk"  ;包含当下目录的某AHK文件
 ; 全局通用变量和函数
-global APPName:="monitorAdjust", ver:="1.0" 
+global APPName:="monitorAdjust", ver:="1.1" 
      , IniFile := "monitorAdjust.ini"
 step := 5
 mon := Monitor() ; Create new class instance
@@ -109,7 +109,7 @@ MenuHandler(ItemName , ItemPos, MyMenu){
     }
     else
     {
-      FileCreateShortcut A_ScriptFullPath, A_Startup "\" APPName ".Lnk", "A_ScriptDir"
+      FileCreateShortcut A_ScriptFullPath, A_Startup "\" APPName ".Lnk", A_ScriptDir
       MyMenu.Check(L_menu_startup)
     }
   }
