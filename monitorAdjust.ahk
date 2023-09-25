@@ -3,11 +3,24 @@
 ;================ 改变显示器亮度 ， ahk下载地址和思路：https://github.com/tigerlily-dev/Monitor-Configuration-Class
 #Include  ".\lib\Monitor Class.ahk"  ;包含当下目录的某AHK文件
 ; 全局通用变量和函数
-global APPName:="monitorAdjust", ver:="1.1" 
+global APPName:="monitorAdjust", ver:="1.2" 
      , IniFile := "monitorAdjust.ini"
 step := 5
 mon := Monitor() ; Create new class instance
 MonitorIndex := 0 ; 默认选中的显示器,从配置文件中读取
+
+if not FileExist(IniFile){
+	FileObj := FileOpen(IniFile, "w")
+	FileObj.write("[setting]`n" .
+	"; 每次按键调节的步长`n" . 
+	"step = 10`n" . 
+	"; 定义快捷键, !表示Alt , #表示windows, +表示shift, ^ 表示Ctrl, 比如 ^#F5 表示同时按下 ctrl+win+F5键，修改后重启程序生效`n" .
+	"BrightnessDecrease = #F5`n" .
+	"BrightnessIncrease = #F6`n" .
+	"ContrastDecrease = #F7`n" .
+	"ContrastIncrease = #F8`n")
+   FileObj.Close()
+}
 ;气泡提示框
 ; 参考：ToolTip - AutoHotkey 中文手册
 ; ToolTip - Syntax & Usage
@@ -25,13 +38,16 @@ tooltips(str, ms)  ;参数：显示的字符串，显示多少毫秒后消失
 }
 
 AddBright(num){
-	Bright := mon.GetBrightness(MonitorIndex)["Current"]
-	mon.SetBrightness(Bright + num ,MonitorIndex)
-	
-	;显示当前亮度
-	Bright := mon.GetBrightness(MonitorIndex)["Current"]
-	tooltips("亮度：" . Bright, 2000)  ; 【 . 】表示连接字符串
-    UpdateMenuInfo()
+	try{
+		Bright := mon.GetBrightness(MonitorIndex)["Current"]
+		mon.SetBrightness(Bright + num ,MonitorIndex)
+		
+		;显示当前亮度
+		Bright := mon.GetBrightness(MonitorIndex)["Current"]
+		tooltips("亮度：" . Bright, 2000)  ; 【 . 】表示连接字符串
+		UpdateMenuInfo()
+	}catch{
+	}
 }
 AddBright1(ThisHotkey)
 {
@@ -42,13 +58,16 @@ AddBright2(ThisHotkey)
     AddBright(step)
 }
 AddContrast(num){
-	Contrast := mon.GetContrast(MonitorIndex)["Current"]
-	mon.SetContrast(Contrast + num ,MonitorIndex)
-	
-	;显示当前对比度
-	Contrast := mon.GetContrast(MonitorIndex)["Current"]
-	tooltips("对比度：" . Contrast, 2000)  ; 【 . 】表示连接字符串
-    UpdateMenuInfo()
+	try{
+		Contrast := mon.GetContrast(MonitorIndex)["Current"]
+		mon.SetContrast(Contrast + num ,MonitorIndex)
+		
+		;显示当前对比度
+		Contrast := mon.GetContrast(MonitorIndex)["Current"]
+		tooltips("对比度：" . Contrast, 2000)  ; 【 . 】表示连接字符串
+		UpdateMenuInfo()
+	}catch{
+	}
 }
 AddContrast1(ThisHotkey)
 {
@@ -123,20 +142,7 @@ MenuHandler(ItemName , ItemPos, MyMenu){
   }
   if(ItemName = L_menu_set)
   {
-	if not FileExist(IniFile){
-        FileObj := FileOpen(IniFile, "w")
-        FileObj.write("[setting]`n" .
-        "; 每次按键调节的步长`n" . 
-        "step = 10`n" . 
-        "; 定义快捷键, !表示Alt , #表示windows, +表示shift, ^ 表示Ctrl, 比如 ^#F5 表示同时按下 ctrl+win+F5键，修改后重启程序生效`n" .
-        "BrightnessDecrease = #F5`n" .
-        "BrightnessIncrease = #F6`n" .
-        "ContrastDecrease = #F7`n" .
-        "ContrastIncrease = #F8`n")
-       FileObj.Close()
-    }
 	Run IniFile
-
   }
   ; 清空全部
   if( InStr(ItemName, L_menu_monitor) > 0 )
