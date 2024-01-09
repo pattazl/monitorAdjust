@@ -245,10 +245,14 @@ CreateMenu()
        MyMenu.Check(L_menu_monitor MonitorIndex MonitorInfo[MonitorIndex])
   }catch{
   }
+  if(MonitorIndex=0){
+      MyMenu.Add('无可调整监视器，请确认硬件后重启',MenuHandler)
+  }else{
   MyMenu.Add(L_menu_bright1 step ',快捷键' key1, MenuHandler)
   MyMenu.Add(L_menu_bright2 step ',快捷键' key2, MenuHandler)
   MyMenu.Add(L_menu_contrast1 step ',快捷键' key3, MenuHandler)
   MyMenu.Add(L_menu_contrast2 step ',快捷键' key4, MenuHandler)
+  }
   
   ; 初始化默认状态
   If FileExist(LinkPath)
