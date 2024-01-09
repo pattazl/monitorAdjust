@@ -3,7 +3,7 @@
 ;================ 改变显示器亮度 ， ahk下载地址和思路：https://github.com/tigerlily-dev/Monitor-Configuration-Class
 #Include  ".\lib\Monitor Class.ahk"  ;包含当下目录的某AHK文件
 ; 全局通用变量和函数
-global APPName:="monitorAdjust", ver:="1.2" 
+global APPName:="monitorAdjust", ver:="1.3" 
      , IniFile := "monitorAdjust.ini"
 step := 5
 mon := Monitor() ; Create new class instance
@@ -24,7 +24,7 @@ if not FileExist(IniFile){
 ;气泡提示框
 ; 参考：ToolTip - AutoHotkey 中文手册
 ; ToolTip - Syntax & Usage
-MonitorGet(1, &Left, &Top, &Right, &Bottom)
+MonitorGet(MonitorIndex, &Left, &Top, &Right, &Bottom)
 tipX := Left+(Right-Left)/2
 tipY := Top+(Bottom-Top)/2
 tooltips(str, ms)  ;参数：显示的字符串，显示多少毫秒后消失
@@ -78,19 +78,25 @@ AddContrast2(ThisHotkey)
     AddContrast(step)
 }
 MCount := 0
+MCountErr := Map()
 MonitorInfo := Array()
 ;用于获取多个显示器的亮度和对比度
 GetMonitorInfo(){
     MInfo := []
     global MCount := MonitorGetCount()
-    loopNum := MCount
-    loop loopNum {
+    loop MCount {
         try{
             data1 := mon.GetBrightness(A_Index)["Current"]  ; "\\.\DISPLAY" 
             data2 := mon.GetContrast(A_Index)["Current"]     ;"\\.\DISPLAY" 
         }catch {
-            MCount := A_Index -1  ; 出现异常则停掉
-            break
+            ; MCount := A_Index -1  ; 出现异常则跳过
+			MCountErr.set(A_Index,0) 
+			; 如果保存的默认显示器序号已经不存在，则清空
+            if(MonitorIndex = A_Index){
+			     global MonitorIndex := 0
+		    }
+			data1 := 0
+			data2 := 0
         }
         MInfo.push("亮度:" data1 "%对比度:" data2 "%")
         ;MInfo.push("亮度:")
@@ -101,6 +107,9 @@ GetMonitorInfo(){
 UpdateMenuInfo(){
     Minfo := GetMonitorInfo()
     loop MCount {
+	    if(MCountErr.Has(A_Index)){
+		   Continue 
+		}
         A_TrayMenu.rename(L_menu_monitor A_Index MonitorInfo[A_Index] , L_menu_monitor A_Index Minfo[A_Index] )
     }
     global MonitorInfo := Minfo
@@ -148,6 +157,9 @@ MenuHandler(ItemName , ItemPos, MyMenu){
   if( InStr(ItemName, L_menu_monitor) > 0 )
   {
     loop MCount {
+	    if(MCountErr.Has(A_Index)){
+		   Continue 
+		}
         MyMenu.UnCheck(L_menu_monitor A_Index MonitorInfo[A_Index])
     }
     MyMenu.Check(ItemName)
@@ -175,6 +187,13 @@ MenuHandler(ItemName , ItemPos, MyMenu){
 
 CreateMenu()
 {
+  ; 获取初始化信息并赋值
+  global step := Integer(IniRead(IniFile,"setting","step","10"))
+  global MonitorIndex := Integer(IniRead(IniFile,"setting","MonitorIndex","1"))
+  key1 := IniRead(IniFile,"setting","BrightnessDecrease","#F5")
+  key2 := IniRead(IniFile,"setting","BrightnessIncrease","#F6")
+  key3 := IniRead(IniFile,"setting","ContrastDecrease","#F7")
+  key4 := IniRead(IniFile,"setting","ContrastIncrease","#F8")
   ; 获取显示器信息,可能会有一些延时，尝试10次
   loop 10 {
     global MonitorInfo := GetMonitorInfo()
@@ -189,16 +208,9 @@ CreateMenu()
     ExitApp
     return
   }
-  ; 获取初始化信息并赋值
-  global step := Integer(IniRead(IniFile,"setting","step","10"))
-  global MonitorIndex := Integer(IniRead(IniFile,"setting","MonitorIndex","1"))
   if (MonitorIndex > MonitorInfo.Length){
     MonitorIndex := MonitorInfo.Length  ; 找一个最近的作为默认值
   }
-  key1 := IniRead(IniFile,"setting","BrightnessDecrease","#F5")
-  key2 := IniRead(IniFile,"setting","BrightnessIncrease","#F6")
-  key3 := IniRead(IniFile,"setting","ContrastDecrease","#F7")
-  key4 := IniRead(IniFile,"setting","ContrastIncrease","#F8")
   ;减小亮度
   Hotkey key1, AddBright1
   ;增大亮度
@@ -219,9 +231,20 @@ CreateMenu()
   MyMenu.Add()
   ; 动态创建显示器清单
   loop MCount {
+     if(MCountErr.Has(A_Index)){
+		   Continue 
+	}
 	MyMenu.Add(L_menu_monitor A_Index MonitorInfo[A_Index], MenuHandler)
+	; 如果默认显示器编号不存在则用有效的显示器编号
+	if MonitorIndex = 0 {
+		MonitorIndex := A_Index
+	}
   }
-  MyMenu.Check(L_menu_monitor MonitorIndex MonitorInfo[MonitorIndex])
+  ; 有可能菜单不存在
+  try{
+       MyMenu.Check(L_menu_monitor MonitorIndex MonitorInfo[MonitorIndex])
+  }catch{
+  }
   MyMenu.Add(L_menu_bright1 step ',快捷键' key1, MenuHandler)
   MyMenu.Add(L_menu_bright2 step ',快捷键' key2, MenuHandler)
   MyMenu.Add(L_menu_contrast1 step ',快捷键' key3, MenuHandler)
