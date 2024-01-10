@@ -1,13 +1,21 @@
-﻿#Requires AutoHotkey v2.0
+﻿;编译信息
+;@Ahk2Exe-SetName monitorAdjust
+;@Ahk2Exe-SetDescription Adjust Monitor Brightness & Contrast
+;@Ahk2Exe-SetProductVersion 1.4
+;@Ahk2Exe-SetFileVersion 1.4
+;@Ahk2Exe-SetCopyright Austing.Young (2023 - )
+;@Ahk2Exe-SetMainIcon res\亮度.ico
+#Requires AutoHotkey v2.0
 #SingleInstance Force
 ;================ 改变显示器亮度 ， ahk下载地址和思路：https://github.com/tigerlily-dev/Monitor-Configuration-Class
 #Include  ".\lib\Monitor Class.ahk"  ;包含当下目录的某AHK文件
 ; 全局通用变量和函数
-global APPName:="monitorAdjust", ver:="1.3" 
+global APPName:="monitorAdjust", ver:="1.4" 
      , IniFile := "monitorAdjust.ini"
 step := 5
 mon := Monitor() ; Create new class instance
 MonitorIndex := 0 ; 默认选中的显示器,从配置文件中读取
+PreMonitorIndex := 0 ; 原先的监视器编号
 
 if not FileExist(IniFile){
 	FileObj := FileOpen(IniFile, "w")
@@ -84,6 +92,10 @@ MonitorInfo := Array()
 GetMonitorInfo(){
     MInfo := []
     global MCount := MonitorGetCount()
+	global MonitorIndex
+	  if (MonitorIndex > MCount){
+		MonitorIndex := 1  ; 第一个作为默认值
+	 }
     loop MCount {
         try{
             data1 := mon.GetBrightness(A_Index)["Current"]  ; "\\.\DISPLAY" 
@@ -190,6 +202,7 @@ CreateMenu()
   ; 获取初始化信息并赋值
   global step := Integer(IniRead(IniFile,"setting","step","10"))
   global MonitorIndex := Integer(IniRead(IniFile,"setting","MonitorIndex","1"))
+  global PreMonitorIndex := MonitorIndex
   key1 := IniRead(IniFile,"setting","BrightnessDecrease","#F5")
   key2 := IniRead(IniFile,"setting","BrightnessIncrease","#F6")
   key3 := IniRead(IniFile,"setting","ContrastDecrease","#F7")
@@ -207,9 +220,6 @@ CreateMenu()
     MsgBox("未获取到任何显示器信息，请重启程序")
     ExitApp
     return
-  }
-  if (MonitorIndex > MonitorInfo.Length){
-    MonitorIndex := MonitorInfo.Length  ; 找一个最近的作为默认值
   }
   ;减小亮度
   Hotkey key1, AddBright1
@@ -265,6 +275,9 @@ CreateMenu()
 OnExit ExitFunc
 ExitFunc(ExitReason, ExitCode)
 {
-    IniWrite MonitorIndex , IniFile, "setting", "MonitorIndex"
+; 设置成功的监视器,且和原先不一样才保存
+    if MonitorIndex  != 0 && PreMonitorIndex != MonitorIndex {
+		IniWrite MonitorIndex , IniFile, "setting", "MonitorIndex"
+	}
 }
 
