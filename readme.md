@@ -1,6 +1,6 @@
 ### 介绍
 
-通过软件控制多个外置显示器的亮度和对比度，显示器需要支持 DDC/CI 协议 
+通过软件控制多个外置显示器的亮度和对比度，显示器需要支持 DDC/CI 协议 。注意：市面上很多type-C扩展坞转hdmi接口时候会去掉DDC/CI协议的支持，从而导致无法使用。
 
 基于 https://github.com/tigerlily-dev/Monitor-Configuration-Class 进行开发，发现其在特定笔记本扩展显示器上有一些bug，跳过异常只处理外置显示器
 
